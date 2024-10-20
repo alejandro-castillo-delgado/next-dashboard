@@ -83,8 +83,8 @@ export async function fetchCardData() {
     const data = await Promise.all([invoiceCountPromise, invoiceTotalPendigPromise, invoicesAmountCollected, invoicesAmountPending, totalCustomers]);
     const numberOfInvoices = data[0].rows[0].count;
     const numberOfPendingInvoices = data[1].rows[0].count;
-    const amountCollected = data[2].rows[0].total;
-    const amountPending = data[3].rows[0].total;
+    const amountCollected = formatCurrency(data[2].rows[0].total);
+    const amountPending = formatCurrency(data[3].rows[0].total);
     const countCustomers = data[4].rows[0].count;
 
     return {
