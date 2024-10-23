@@ -3,6 +3,8 @@ import { fetchCustomers } from '@/app/lib/data'
 import Breadcrumbs from '../../../ui/invoices/breadcrumbs';
 import Form from '../../../ui/invoices/create-form';
 
+import { CustomerField } from '@/app/lib/definitions';
+
 
 const Page = async () => {
 
@@ -20,7 +22,7 @@ const Page = async () => {
                     },
                 ]}
             />
-            <Form customers={customers} />
+            <Form customers={customers ?? []} />
         </main>
     );
 }
