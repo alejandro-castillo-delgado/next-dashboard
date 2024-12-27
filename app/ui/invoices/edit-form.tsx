@@ -117,7 +117,6 @@ export default function EditInvoiceForm({ invoice, customers, }: { invoice: Invo
                   defaultChecked={invoice.status === 'paid'}
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
-                {'asdasd'}
                 <label
                   htmlFor="paid"
                   className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white"
