@@ -186,16 +186,8 @@ export async function fetchCustomers() {
   try {
     const data = await sql<CustomerField>`
     SELECT
-        customers.id,
-        customers.name,
-        customers.email,
-        customers.image_url,
-        SUM(invoices.amount) AS total_invoices,
-        COUNT(CASE WHEN invoices.status = 'paid' THEN invoices.customer_id END) AS total_paid,
-        COUNT(CASE WHEN invoices.status = 'pending' THEN invoices.customer_id END) AS total_pending
-      FROM customers
-      INNER JOIN invoices ON customers.id = invoices.customer_id
-      GROUP BY customers.id, customers.name, customers.email;
+        *
+    FROM customers;
     `;
 
     const customers = data.rows;
@@ -223,12 +215,12 @@ export async function fetchFilteredCustomers(
       COUNT(CASE WHEN invoices.status = 'paid' THEN invoices.customer_id END) AS total_paid,
       COUNT(CASE WHEN invoices.status = 'pending' THEN invoices.customer_id END) AS total_pending
 		FROM customers
-		JOIN invoices ON customers.id = invoices.customer_id
+		LEFT JOIN invoices ON customers.id = invoices.customer_id
 		WHERE
-    customers.name ILIKE ${`%${query}%`} OR
-    customers.email ILIKE ${`%${query}%`}
+      customers.name ILIKE ${`%${query}%`} OR
+      customers.email ILIKE ${`%${query}%`}
     GROUP BY customers.id, customers.name, customers.email
-		ORDER BY customers.name DESC
+		ORDER BY customers.name ASC
     LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
 	  `;
 

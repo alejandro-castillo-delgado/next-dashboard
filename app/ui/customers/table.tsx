@@ -112,7 +112,7 @@ export default async function CustomersTable({
                     <td className="whitespace-nowrap bg-white px-4 py-5 text-sm group-first-of-type:rounded-md group-last-of-type:rounded-md">
                       {customer.total_paid}
                     </td>
-                    <td className='whitespace-nowrap py-3 pl-6 pr-3'>
+                    <td className='whitespace-nowrap py-3 pl-6 pr-3 bg-white'>
                       <div className='flex justify-end gap-3'>
                         <UpdateCustomer id={customer.id} />
                         <DeleteCustomer id={customer.id} />

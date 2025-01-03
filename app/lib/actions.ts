@@ -182,19 +182,19 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
         }
     }
 
-    if (image_file) {
-        const bytes = await image_file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const extension = image_file.type.split('/')[1];
-        const filename = `${Date.now()}.${extension}`;
-        const filePath = path.join(process.cwd(), 'public', 'customers', filename);
-        try {
-            writeFile(filePath, buffer);
-            file_name = filename;
-        } catch (error) {
-            console.error('Error writing file:', error);
-        }
-    }
+    // if (image_file) {
+    //     const bytes = await image_file.arrayBuffer();
+    //     const buffer = Buffer.from(bytes);
+    //     const extension = image_file.type.split('/')[1];
+    //     const filename = `${Date.now()}.${extension}`;
+    //     const filePath = path.join(process.cwd(), 'public', 'customers', filename);
+    //     try {
+    //         writeFile(filePath, buffer);
+    //         file_name = filename;
+    //     } catch (error) {
+    //         console.error('Error writing file:', error);
+    //     }
+    // }
 
     // Prepare data for insertion into the database
     const { name, email } = validatedFieldsCusotmers.data;
