@@ -185,11 +185,17 @@ export async function fetchInvoiceById(id: string) {
 export async function fetchCustomers() {
   try {
     const data = await sql<CustomerField>`
-      SELECT
-        id,
-        name
+    SELECT
+        customers.id,
+        customers.name,
+        customers.email,
+        customers.image_url,
+        SUM(invoices.amount) AS total_invoices,
+        COUNT(CASE WHEN invoices.status = 'paid' THEN invoices.customer_id END) AS total_paid,
+        COUNT(CASE WHEN invoices.status = 'pending' THEN invoices.customer_id END) AS total_pending
       FROM customers
-      ORDER BY name ASC
+      INNER JOIN invoices ON customers.id= invoices.customer_id
+      GROUP BY customers.id, customers.name, customers.email;
     `;
 
     const customers = data.rows;

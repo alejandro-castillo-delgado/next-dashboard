@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { error } from 'console';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import { writeFile } from 'fs/promises';
+import path from 'path';
 
 const FormSchema = z.object({
     id: z.string(),
@@ -138,5 +140,94 @@ export async function authenticate(
             }
         }
         throw error;
+    }
+}
+
+const FormSchemaCustomer = z.object({
+    id: z.string(),
+    name: z.string({ message: 'Please insert name of customer' }),
+    email: z.string({ message: 'Please insert email of customer' }),
+    //image_url: z.string(),
+});
+
+const CreateCustomer = FormSchemaCustomer.omit({ id: true, });
+
+export type StateCustomer = {
+    error?: {
+        name?: string[];
+        email?: string[];
+        //image_url?: string[];
+    },
+    message?: string | null;
+}
+
+
+
+export const createCustomer = async (prevState: StateCustomer, formData: FormData) => {
+    const validatedFieldsCusotmers = CreateCustomer.safeParse({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        // image_url: formData.get('image_url'),
+    });
+
+    const image_file = formData.get('image') as File | null;
+    let file_name = '';
+
+
+
+    if (!validatedFieldsCusotmers.success) {
+        return {
+            error: validatedFieldsCusotmers.error.flatten().fieldErrors,
+            message: 'Missing required fields. Failed to Create Invoice.',
+        }
+    }
+
+    if (image_file) {
+        const bytes = await image_file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const extension = image_file.type.split('/')[1];
+        const filename = `${Date.now()}.${extension}`;
+        const filePath = path.join(process.cwd(), 'public', 'customers', filename);
+        try {
+            writeFile(filePath, buffer);
+            file_name = filename;
+        } catch (error) {
+            console.error('Error writing file:', error);
+        }
+    }
+
+    // Prepare data for insertion into the database
+    const { name, email } = validatedFieldsCusotmers.data;
+
+    const image_url = `/customers/${file_name !== '' ? file_name : "placeholder.png"}`;
+
+    try {
+        await sql
+            `
+            INSERT INTO customers (name, email, image_url)
+            VALUES (${name}, ${email}, ${image_url})
+        `;
+    } catch (error) {
+        return {
+            message: 'Data Base Error. Error creating invoice',
+        }
+    }
+
+    revalidatePath('/dashboard/customers');
+    redirect('/dashboard/customers');
+}
+
+
+export const deleteCustomer = async (id: string) => {
+    try {
+        await sql
+            `
+            DELETE FROM customers
+            WHERE customers.id = ${id}
+            `;
+        revalidatePath('/dashboard/customers');
+        return { message: 'Deleted Customer.' };
+    } catch (error) {
+        return { message: "Data Base Error. Error deleting customer" };
     }
 }
