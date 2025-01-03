@@ -27,12 +27,12 @@ export default function CustomerForm() {
         },
     })
 
-    const handleSubmit = (events: any) => {
-        const formData = new FormData(events.target);
-        formData.append('image', selectedImage);
-        //formAction(formData);
-        console.log(formData);
-    }
+    // const handleSubmit = (events: any) => {
+    //     const formData = new FormData(events.target);
+    //     formData.append('image', selectedImage);
+    //     //formAction(formData);
+    //     console.log(formData);
+    // }
     return (
         <form action={formAction}>
             <div className='rounded-md bg-gray-50 p-4 md:p-6 block'>
