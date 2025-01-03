@@ -104,7 +104,7 @@ export default async function CustomersTable({
                       {customer.email}
                     </td>
                     <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                      {formatCurrency(customer.total_invoices)}
+                      {formatCurrency(parseInt(customer.total_invoices, 10))}
                     </td>
                     <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
                       {customer.total_pending}
