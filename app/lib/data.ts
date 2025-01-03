@@ -194,7 +194,7 @@ export async function fetchCustomers() {
         COUNT(CASE WHEN invoices.status = 'paid' THEN invoices.customer_id END) AS total_paid,
         COUNT(CASE WHEN invoices.status = 'pending' THEN invoices.customer_id END) AS total_pending
       FROM customers
-      INNER JOIN invoices ON customers.id= invoices.customer_id
+      INNER JOIN invoices ON customers.id = invoices.customer_id
       GROUP BY customers.id, customers.name, customers.email;
     `;
 
@@ -206,7 +206,12 @@ export async function fetchCustomers() {
   }
 }
 
-export async function fetchFilteredCustomers(query: string) {
+export async function fetchFilteredCustomers(
+  query: string,
+  currentPage: number,
+) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
   try {
     const data = await sql<CustomersTableType>`
 		SELECT
@@ -214,27 +219,49 @@ export async function fetchFilteredCustomers(query: string) {
 		  customers.name,
 		  customers.email,
 		  customers.image_url,
-		  COUNT(invoices.id) AS total_invoices,
-		  SUM(CASE WHEN invoices.status = 'pending' THEN invoices.amount ELSE 0 END) AS total_pending,
-		  SUM(CASE WHEN invoices.status = 'paid' THEN invoices.amount ELSE 0 END) AS total_paid
+      SUM(invoices.amount) AS total_invoices,
+      COUNT(CASE WHEN invoices.status = 'paid' THEN invoices.customer_id END) AS total_paid,
+      COUNT(CASE WHEN invoices.status = 'pending' THEN invoices.customer_id END) AS total_pending
 		FROM customers
-		LEFT JOIN invoices ON customers.id = invoices.customer_id
+		JOIN invoices ON customers.id = invoices.customer_id
 		WHERE
-		  customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`}
-		GROUP BY customers.id, customers.name, customers.email, customers.image_url
-		ORDER BY customers.name ASC
+    customers.name ILIKE ${`%${query}%`} OR
+    customers.email ILIKE ${`%${query}%`}
+    GROUP BY customers.id, customers.name, customers.email
+		ORDER BY customers.name DESC
+    LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
 	  `;
+
+    //   return customers.rows;
+    // } catch (error) {
+    //   console.error('Database Error:', error);
+    //   // throw new Error('Failed to fetch invoices.');
+    // }
 
     const customers = data.rows.map((customer) => ({
       ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
+      total_invoices: formatCurrency(customer.total_pending),
+      total_paid: customer.total_paid,
+      total_pending: customer.total_pending,
     }));
 
     return customers;
   } catch (err) {
     console.error('Database Error:', err);
     // throw new Error('Failed to fetch customer table.');
+  }
+}
+
+export async function fetchCustomersPages(query: string) {
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM customers;
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    // throw new Error('Failed to fetch total number of invoices.');
   }
 }

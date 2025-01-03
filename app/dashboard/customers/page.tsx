@@ -1,4 +1,5 @@
-import { fetchCustomers } from '@/app/lib/data'
+import { fetchCustomers, fetchCustomersPages } from '@/app/lib/data'
+import { FormattedCustomersTable } from '@/app/lib/definitions'
 import { CreateCustomer } from '@/app/ui/customers/buttons'
 import CustomersTable from '@/app/ui/customers/table'
 import { lusitana } from '@/app/ui/fonts'
@@ -12,7 +13,7 @@ const Customers = async ({ searchParams, }: { searchParams?: { query?: string; p
     const customers = await fetchCustomers();
     const query = searchParams?.query || "";
     const currentPage = searchParams?.page || 1;
-    //const totalPage = await fetchCustomersPages(query);
+    const totalPage = await fetchCustomersPages(query);
 
     console.log(customers);
 
@@ -26,7 +27,7 @@ const Customers = async ({ searchParams, }: { searchParams?: { query?: string; p
                 <CreateCustomer />
             </div>
             <Suspense key={query + currentPage} fallback={<CustomersTableSkeleton />}>
-                <CustomersTable customers={customers ?? []} />
+                <CustomersTable query={query} currentPage={currentPage} />
             </Suspense>
         </div>
     )
