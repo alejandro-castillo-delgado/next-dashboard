@@ -26,7 +26,7 @@ const Customers = async ({ searchParams, }: { searchParams?: { query?: string; p
                 <CreateCustomer />
             </div>
             <Suspense key={query + currentPage} fallback={<CustomersTableSkeleton />}>
-                <CustomersTable customers={customers} />
+                <CustomersTable customers={customers ?? []} />
             </Suspense>
         </div>
     )
