@@ -8,6 +8,7 @@ import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import { put } from '@vercel/blob';
 
 const FormSchema = z.object({
     id: z.string(),
@@ -171,7 +172,7 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
     });
 
     const image_file = formData.get('image') as File | null;
-    let file_name = '';
+    let url = '';
 
 
 
@@ -182,24 +183,37 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
         }
     }
 
-    // if (image_file) {
-    //     const bytes = await image_file.arrayBuffer();
-    //     const buffer = Buffer.from(bytes);
-    //     const extension = image_file.type.split('/')[1];
-    //     const filename = `${Date.now()}.${extension}`;
-    //     const filePath = path.join(process.cwd(), 'public', 'customers', filename);
-    //     try {
-    //         writeFile(filePath, buffer);
-    //         file_name = filename;
-    //     } catch (error) {
-    //         console.error('Error writing file:', error);
-    //     }
-    // }
+    if (!image_file) {
+        return {
+            error: {
+                image: ['Please upload a file'],
+            },
+            message: 'Missing required fields. Failed to Create Invoice.',
+        }
+    }
+    const extension = image_file?.type.split('/')[1];
+    const filename = `${Date.now()}.${extension}`;
+    const blob = await put(`customers/avatars/${filename}`, image_file, {
+        access: 'public',
+    });
+
+
+    // const blob = await upload('big-file.mp4', file, {
+    //     access: 'public',
+    //     handleUploadUrl: '/api/upload',
+    //     onUploadProgress: (progressEvent) => {
+    //         console.log(`Loaded ${progressEvent.loaded} bytes`);
+    //         console.log(`Total ${progressEvent.total} bytes`);
+    //         console.log(`Percentage ${progressEvent.percentage}%`);
+    //     },
+    // });
+
+
 
     // Prepare data for insertion into the database
     const { name, email } = validatedFieldsCusotmers.data;
 
-    const image_url = `/customers/${file_name !== '' ? file_name : "placeholder.png"}`;
+    const image_url = `${blob.url ?? "customers/placeholder.png"}`;
 
     try {
         await sql
