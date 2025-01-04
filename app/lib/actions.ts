@@ -8,7 +8,8 @@ import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { put } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
+import { FormattedCustomersTable } from './definitions';
 
 const FormSchema = z.object({
     id: z.string(),
@@ -234,6 +235,15 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
 
 export const deleteCustomer = async (id: string) => {
     try {
+        const data = await sql<FormattedCustomersTable>
+        `
+            SELECT
+                *
+            FROM customers
+            WHERE customers.id = ${id};
+            `;
+        const url = data.rows[0].image_url;
+        await del(url);
         await sql
             `
             DELETE FROM customers
