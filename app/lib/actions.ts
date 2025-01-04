@@ -173,7 +173,7 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
     });
 
     const image_file = formData.get('image') as File | null;
-    let url = '';
+    let url = null;
 
 
 
@@ -184,19 +184,14 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
         }
     }
 
-    if (!image_file) {
-        return {
-            error: {
-                image: ['Please upload a file'],
-            },
-            message: 'Missing required fields. Failed to Create Invoice.',
-        }
+    if (image_file) {
+        const extension = image_file?.type.split('/')[1];
+        const filename = `${Date.now()}.${extension}`;
+        const blob = await put(`customers/avatars/${filename}`, image_file, {
+            access: 'public',
+        });
+        url = blob.url;
     }
-    const extension = image_file?.type.split('/')[1];
-    const filename = `${Date.now()}.${extension}`;
-    const blob = await put(`customers/avatars/${filename}`, image_file, {
-        access: 'public',
-    });
 
 
     // const blob = await upload('big-file.mp4', file, {
@@ -214,7 +209,7 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
     // Prepare data for insertion into the database
     const { name, email } = validatedFieldsCusotmers.data;
 
-    const image_url = `${blob.url ?? "customers/placeholder.png"}`;
+    const image_url = `${url ?? "customers/placeholder.png"}`;
 
     try {
         await sql
@@ -236,7 +231,7 @@ export const createCustomer = async (prevState: StateCustomer, formData: FormDat
 export const deleteCustomer = async (id: string) => {
     try {
         const data = await sql<FormattedCustomersTable>
-        `
+            `
             SELECT
                 *
             FROM customers
